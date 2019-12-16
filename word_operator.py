@@ -173,6 +173,8 @@ class WordOperator:
                 self.doc.Range(pos, pos+1).Font.Name = 'wingdings 2'
                 start = regex_result.end(0) + 1
                 regex_result = regex.search(self.get_full_text(), pos=start)
+            else:
+                break
 
 if __name__ == '__main__':
     with WordOperator('C:\\Users\\xuhuan\\Desktop\\fill_doc\\123.docx') as wd:
