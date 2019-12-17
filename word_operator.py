@@ -16,8 +16,9 @@ class WordOperator:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.doc.Close(True)
-        self.word.Application.Quit()
-        pythoncom.CoUninitialize()
+        if self.word.Documents.Count == 0:   # 只有当前没有其他doc打开的情况下才关闭word,否则其他doc继续进行操作会报错
+            self.word.Application.Quit()
+            pythoncom.CoUninitialize()
 
     def _init_doc(self):
         try:
