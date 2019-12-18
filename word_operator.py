@@ -4,6 +4,15 @@ import re
 import pythoncom
 import win32com.client as win32
 
+# word中某些字符需要做转换
+CHARACTER_MAP = str.maketrans({
+        '\r': '\n',
+        '\t': ' ',
+        '\xa0': ' ',
+        '\x0c': ' ',
+        '\x07': None,
+})
+
 
 class WordOperator:
     def __init__(self, file_path=''):
@@ -37,18 +46,10 @@ class WordOperator:
         return self.doc.Characters.Item(pos + 1).Start
 
     def get_full_text(self):
-        return self.doc.Content.Text.replace('\x07', '')\
-                                    .replace('\r', '\n')\
-                                    .replace('\xa0', ' ')\
-                                    .replace('\x0c', ' ')\
-                                    .replace('\t', ' ')
+        return self.doc.Content.Text.translate(CHARACTER_MAP)
 
     def get_partial_text(self, start_index, end_index):
-        return self.doc.Range(start_index, end_index).Text.replace('\x07', '')\
-                                                        .replace('\r', '\n')\
-                                                        .replace('\xa0', ' ')\
-                                                        .replace('\x0c', ' ')\
-                                                        .replace('\t', ' ')
+        return self.doc.Range(start_index, end_index).Text.translate(CHARACTER_MAP)
 
     def search_text(self, match_text):
         myRange = self.doc.Content

@@ -114,7 +114,7 @@ if __name__ == '__main__':
         u'编制说明': [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]],
         u'投标报价表': [[1, 2, 3, 4], [2, 3, 4, 5], [2, 3, 4, 5], [5, 6, 7, 8]],
     }
-    fill_doc(u'C:\\Users\\xuhuan\\Desktop\\fill_doc\\123.docx', fc)
+    fill_doc(u'C:\\Users\\xuhuan\\Desktop\\my_word_filler\\123.docx', fc)
 
 
 
