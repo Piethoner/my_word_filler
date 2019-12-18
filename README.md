@@ -1,6 +1,9 @@
-# my_word_filler
+微软win32 word接口参考: https://docs.microsoft.com/zh-CN/office/vba/api/word.document
 
-## 使用配置的方式填充word文档
+# my_word_filler
+####
+使用配置的方式填充word文档
+####
 
 ### 已有的配置类型
 ```
