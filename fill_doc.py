@@ -21,6 +21,9 @@ def rule(wd, fcontent, args):
         wd.insert_into_table_cell(args[1], args[2], args[3], fcontent, args[4], args[5])
     elif args[0] == MAKE_CHOICE:
         wd.make_choice(args[1], args[2], fcontent)
+    elif args[0] == ADD_TABLE_AFTER_CAPTION:
+        scope = args[2] if len(args) > 2 else None
+        wd.add_table_after_caption(fcontent, args[1], scope)
 
 
 # 填充文档
@@ -108,8 +111,8 @@ if __name__ == '__main__':
         u'开户行': u'中国银行深圳分行',
         u'帐号': u'test254353533tesst',
         u'地址及联系电话': u'联系地址和电话test',
-        u'编制说明':u'',
-        u'投标报价表': u'',
+        u'编制说明': [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]],
+        u'投标报价表': [[1, 2, 3, 4], [2, 3, 4, 5], [2, 3, 4, 5], [5, 6, 7, 8]],
     }
     fill_doc(u'C:\\Users\\xuhuan\\Desktop\\fill_doc\\123.docx', fc)
 

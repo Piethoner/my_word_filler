@@ -34,7 +34,7 @@ class WordOperator:
         由于某些原因， 正则得到的字符位置和 word 文档中实际的字符位置有偏差，
         这个方法用于将正则得到的位置转化到 word 文档中的对应位置
         '''
-        return self.doc.Characters.Item(pos).Start + 1
+        return self.doc.Characters.Item(pos + 1).Start
 
     def get_full_text(self):
         return self.doc.Content.Text.replace('\x07', '')\
@@ -149,33 +149,68 @@ class WordOperator:
 
     def make_choice(self, pattern, options, check_item):
         '''
+        这里使用偏移来定位容易因为文件细微的差距而出现问题，这里改为正则定位
         pattern: regex string
-        options: dict {item : offset}
+        options: tuple
         check_item: str
         '''
-        # myRange = self.doc.Content
-        # myRange.Find.Execute(FindText=pattern, Forward=True)
-        # if myRange.Find.Found:
+        # regex = re.compile(pattern)
+        # start = 0
+        # regex_result = regex.search(self.get_full_text(), pos=start)
+        # while regex_result:
+        #     pos = self._convert_regex_pos_to_doc_pos(regex_result.end(0))
         #     offset = options.get(check_item)
         #     if offset != None:
-        #         pos = myRange.End + offset
+        #         pos = pos + offset
         #         self.doc.Range(pos, pos+1).Text = u''
         #         self.doc.Range(pos, pos+1).Font.Name = 'wingdings 2'
-        #         return True
-        regex = re.compile(pattern)
+        #         start = regex_result.end(0) + 1
+        #         regex_result = regex.search(self.get_full_text(), pos=start)
+        #     else:
+        #         break
+        if check_item not in options:
+            return
+        caption_regex = re.compile(pattern)
         start = 0
-        regex_result = regex.search(self.get_full_text(), pos=start)
-        while regex_result:
-            pos = self._convert_regex_pos_to_doc_pos(regex_result.end(0))
-            offset = options.get(check_item)
-            if offset != None:
-                pos = pos + offset
-                self.doc.Range(pos, pos+1).Text = u''
+        caption_regex_result = caption_regex.search(self.get_full_text(), pos=start)
+        while caption_regex_result:
+            pos = self._convert_regex_pos_to_doc_pos(caption_regex_result.end(0))
+            context = self.get_partial_text(pos, pos+100)
+            item_regex = re.compile(r'([□(]) ?%s' % check_item)    # 这个方框的输出字符很迷
+            item_regex_result = item_regex.search(context)
+            if item_regex_result:
+                pos = self._convert_regex_pos_to_doc_pos(caption_regex_result.end(0) + item_regex_result.start(1))
+                self.doc.Range(pos, pos + 1).Text = u''
                 self.doc.Range(pos, pos+1).Font.Name = 'wingdings 2'
-                start = regex_result.end(0) + 1
-                regex_result = regex.search(self.get_full_text(), pos=start)
-            else:
-                break
+            start = caption_regex_result.end(0) + 1
+            caption_regex_result = caption_regex.search(self.get_full_text(), pos=start)
+
+
+    def add_table_after_caption(self, table_data, caption, scope):
+        '''
+        :param table_data:
+        :param caption: 找到这个标题并在其下一行插入表格，没有找到时默认在文档末尾插入
+        :param scope: 浮点数二元组, 表示查找的范围， 默认在最后的20%范围以内进行查找
+        :return:
+        '''
+        if not scope:
+            scope = (0.8, 1.0)
+        rows = len(table_data)
+        columns = len(table_data[0])
+        end_pos = self.doc.Content.End
+        myRange = self.doc.Range(int(scope[0]*end_pos), int(scope[1]*end_pos))
+        myRange.Find.Execute(FindText=caption, Forward=True)
+        if not myRange.Find.Found:
+            myRange.Collapse(Direction=0)
+            myRange.InsertAfter('\r' + caption)
+            myRange.Collapse(Direction=0)
+        myRange = self.doc.Range(myRange.End, myRange.End)
+        tab = self.doc.Tables.Add(myRange, rows, columns)
+        tab.Borders.Enable = 1
+        for i in range(1, rows + 1):
+            for j in range(1, columns + 1):
+                tab.Cell(i, j).Range.Text = str(table_data[i - 1][j - 1])
+        self.doc.Range(tab.Range.End, tab.Range.End+1).InsertAfter('\r')
 
 if __name__ == '__main__':
     with WordOperator('C:\\Users\\xuhuan\\Desktop\\fill_doc\\123.docx') as wd:
