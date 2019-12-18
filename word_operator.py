@@ -4,7 +4,7 @@ import re
 import pythoncom
 import win32com.client as win32
 
-# word中某些字符需要做转换, 使用这个方式（translate用于单字符, replace用于多字符）效率更高
+# word中某些字符需要做转换, 使用这个方式（translate只能用于单字符, replace常用于多字符）
 CHARACTER_MAP = str.maketrans({
         '\r': '\n',
         '\t': ' ',
