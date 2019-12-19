@@ -31,20 +31,18 @@ def fill_doc(file_path, fill_content):
     with WordOperator(file_path) as wd:
         field_map = DOC_MAP
         for field_name, args_list in field_map.items():
-            fcontent = fill_content.get(field_name, '')
-            fc_temp = copy.copy(fcontent)
+            fc_temp = fill_content.get(field_name, '')
             print(field_name, ' : ', fcontent)
             for args in args_list:
                 print(args)
+                fcontent = copy.copy(fc_temp)
                 if args:
                     if args[0] == DEPENDENT_TYPE:
                         args = args[2].get(fill_content.get(args[1]))
                     elif args[0] == SLICE_TYPE:
-                        fcontent = copy.copy(fc_temp)
                         fcontent = fcontent[args[1][0]:args[1][1]]
                         args = args[2]
                     elif args[0] == SPLIT_TYPE:
-                        fcontent = copy.copy(fc_temp)
                         fragments = fcontent.split(args[1][0])
                         if not len(fragments) == args[1][1]:
                             break
