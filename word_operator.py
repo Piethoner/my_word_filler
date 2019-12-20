@@ -194,6 +194,25 @@ class WordOperator:
         :param scope: 浮点数二元组, 表示查找的范围， 默认在最后的20%范围以内进行查找
         :return:
         '''
+        # if not scope:
+        #     scope = (0.8, 1.0)
+        # rows = len(table_data)
+        # columns = len(table_data[0])
+        # end_pos = self.doc.Content.End
+        # myRange = self.doc.Range(int(scope[0]*end_pos), int(scope[1]*end_pos))
+        # myRange.Find.Execute(FindText=caption, Forward=True)
+        # if not myRange.Find.Found:
+        #     myRange.Collapse(Direction=0)
+        #     myRange.InsertAfter('\r' + caption)
+        #     myRange.Collapse(Direction=0)
+        # myRange = self.doc.Range(myRange.End, myRange.End)
+        # tab = self.doc.Tables.Add(myRange, rows, columns)
+        # tab.Borders.Enable = 1
+        # for i in range(1, rows + 1):
+        #     for j in range(1, columns + 1):
+        #         tab.Cell(i, j).Range.Text = str(table_data[i - 1][j - 1])
+        # self.doc.Range(tab.Range.End, tab.Range.End+1).InsertAfter('\r')
+
         if not scope:
             scope = (0.8, 1.0)
         rows = len(table_data)
@@ -201,17 +220,26 @@ class WordOperator:
         end_pos = self.doc.Content.End
         myRange = self.doc.Range(int(scope[0]*end_pos), int(scope[1]*end_pos))
         myRange.Find.Execute(FindText=caption, Forward=True)
-        if not myRange.Find.Found:
+        found = myRange.Find.Found
+        if not found:
             myRange.Collapse(Direction=0)
             myRange.InsertAfter('\r' + caption)
             myRange.Collapse(Direction=0)
-        myRange = self.doc.Range(myRange.End, myRange.End)
+            myRange = self.doc.Range(myRange.End, myRange.End)
+        else:
+            # 表格标题很常出现在list里，直接插显示的时候会出问题，这里需要在要插入的行消除list的格式
+            myRange = self.doc.Range(myRange.End, myRange.End)
+            myRange.InsertAfter('\r')
+            myRange = self.doc.Range(myRange.End, myRange.End)
+            myRange.ListFormat.RemoveNumbers()
+            myRange = self.doc.Range(myRange.End-1, myRange.End-1)
         tab = self.doc.Tables.Add(myRange, rows, columns)
         tab.Borders.Enable = 1
         for i in range(1, rows + 1):
             for j in range(1, columns + 1):
                 tab.Cell(i, j).Range.Text = str(table_data[i - 1][j - 1])
-        self.doc.Range(tab.Range.End, tab.Range.End+1).InsertAfter('\r')
+        if not found:
+            self.doc.Range(tab.Range.End, tab.Range.End+1).InsertAfter('\r')
 
 if __name__ == '__main__':
     with WordOperator('C:\\Users\\xuhuan\\Desktop\\fill_doc\\123.docx') as wd:
