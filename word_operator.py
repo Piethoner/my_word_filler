@@ -21,6 +21,7 @@ class WordOperator:
     def __enter__(self):
         pythoncom.CoInitialize()
         self.doc, self.word = self._init_doc()
+        self._preprocess()      #
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -28,6 +29,10 @@ class WordOperator:
         if self.word.Documents.Count == 0:   # 只有当前没有其他doc打开的情况下才关闭word,否则其他doc继续进行操作会报错
             self.word.Application.Quit()
             pythoncom.CoUninitialize()
+
+    def _preprocess(self):
+        # 获取可能的字符位置跟正则位置偏差
+        self.invisible_char_count = max(self.doc.Characters.Count - len(self.doc.Content.Text.replace('\x07', '')), 0)
 
     def _init_doc(self):
         try:
@@ -44,6 +49,22 @@ class WordOperator:
         这个方法用于将正则得到的位置转化到 word 文档中的对应位置
         '''
         return self.doc.Characters.Item(pos + 1).Start
+
+    # def _convert_regex_pos_to_doc_pos(self, pos, endpos):
+    #     # todo: 实际情况还是可能出现偏差，所以需要对 convert 函数做以下修改
+    #     """
+    #     由于某些原因， 正则得到的字符位置和 word 文档中实际的字符位置有偏差，
+    #     这个方法用于将正则得到的位置转化到 word 文档中的对应位置。
+    #     使用 regex 的 start 和 end 两个位置 来定位文本。
+    #     """
+    #     doc_content = self.doc.Content.Text.replace('\x07', '')
+    #     for i in range(self.invisible_char_count + 1):
+    #         pc = self.doc.Characters(pos + 1)
+    #         if doc_content[pos] == pc.Text.replace('\x07', ''):
+    #             epc = self.doc.Characters(endpos + 1)
+    #             if doc_content[endpos] == epc.Text.replace('\x07', ''):
+    #                 return pc.Start, epc.Start
+    #         pos, endpos = pos + 1, endpos + 1
 
     def get_full_text(self):
         return self.doc.Content.Text.translate(CHARACTER_MAP)
